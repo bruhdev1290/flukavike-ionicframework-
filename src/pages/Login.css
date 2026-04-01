@@ -1,0 +1,156 @@
+/* ── Page & background ───────────────────────────────────────────────────── */
+.flx-login-page,
+.flx-login-content {
+  --background: var(--flx-bg-tertiary);
+}
+
+.flx-login-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flx-login-bg {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(88,101,242,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 75% 80%, rgba(88,101,242,0.10) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Card ────────────────────────────────────────────────────────────────── */
+.flx-login-card {
+  position: relative;
+  z-index: 1;
+  width: min(400px, calc(100vw - 32px));
+  background: var(--flx-bg-elevated);
+  border-radius: var(--flx-radius-xl);
+  box-shadow: var(--flx-shadow-lg), 0 0 0 1px var(--flx-separator);
+  padding: var(--flx-space-xl);
+  margin: auto;
+}
+
+.flx-login-card__logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--flx-space-lg);
+}
+
+.flx-login-card__section { display: flex; flex-direction: column; gap: var(--flx-space-md); }
+
+.flx-login-card__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--flx-text-primary);
+  text-align: center;
+}
+.flx-login-card__subtitle {
+  margin: -8px 0 0;
+  font-size: 14px;
+  color: var(--flx-text-muted);
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ── Inputs ──────────────────────────────────────────────────────────────── */
+.flx-input-group { display: flex; flex-direction: column; gap: 6px; }
+.flx-label { font-size: 12px; font-weight: 700; color: var(--flx-text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.flx-input-wrapper { position: relative; }
+
+.flx-input {
+  width: 100%;
+  background: var(--flx-bg-surface);
+  border: 1px solid var(--flx-separator);
+  border-radius: var(--flx-radius-md);
+  color: var(--flx-text-primary);
+  font-family: var(--flx-font-family);
+  font-size: 15px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color var(--flx-duration-fast) ease, box-shadow var(--flx-duration-fast) ease;
+  box-sizing: border-box;
+}
+.flx-input--has-icon { padding-right: 40px; }
+.flx-input:focus {
+  border-color: var(--flx-accent);
+  box-shadow: 0 0 0 3px var(--flx-accent-glow);
+}
+.flx-input::placeholder { color: var(--flx-text-muted); }
+/* Hide number input spinners */
+.flx-input[type=number]::-webkit-inner-spin-button,
+.flx-input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+.flx-input-icon-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--flx-text-muted);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+.flx-input-icon-btn:hover { color: var(--flx-text-secondary); }
+
+.flx-hint { font-size: 12px; color: var(--flx-text-muted); }
+
+/* ── Primary button ─────────────────────────────────────────────────────── */
+.flx-login-card__btn.button-native,
+.flx-login-card__btn {
+  --background: var(--flx-accent);
+  --background-hover: var(--flx-accent-hover);
+  --background-activated: var(--flx-accent-active);
+  --color: #ffffff;
+  --border-radius: var(--flx-radius-sm);
+  font-weight: 700;
+  font-size: 15px;
+  height: 44px;
+}
+
+/* ── Advanced toggle ────────────────────────────────────────────────────── */
+.flx-advanced-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--flx-text-muted);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 auto;
+  padding: 4px 8px;
+  border-radius: var(--flx-radius-sm);
+  transition: color var(--flx-duration-fast) ease;
+  font-family: var(--flx-font-family);
+}
+.flx-advanced-toggle:hover { color: var(--flx-text-secondary); }
+.flx-advanced-toggle ion-icon { font-size: 14px; }
+
+/* ── MFA method pills ───────────────────────────────────────────────────── */
+.flx-mfa-methods { display: flex; gap: 8px; }
+.flx-mfa-method {
+  flex: 1;
+  padding: 8px;
+  background: var(--flx-bg-surface);
+  border: 1px solid var(--flx-separator);
+  border-radius: var(--flx-radius-md);
+  cursor: pointer;
+  color: var(--flx-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--flx-font-family);
+  transition: all var(--flx-duration-fast) ease;
+}
+.flx-mfa-method--active {
+  background: var(--flx-accent-light);
+  border-color: var(--flx-accent);
+  color: var(--flx-accent);
+}

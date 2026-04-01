@@ -1,0 +1,90 @@
+.flx-message {
+  display: flex;
+  gap: var(--flx-space-md);
+  padding: 2px var(--flx-space-md);
+  position: relative;
+  transition: background var(--flx-duration-instant) ease;
+}
+.flx-message:hover { background: rgba(255,255,255,0.02); }
+.flx-message--grouped { padding-top: 1px; padding-bottom: 1px; }
+
+/* Full message: 16px top padding for visual separation */
+.flx-message:not(.flx-message--grouped) { padding-top: var(--flx-space-md); }
+
+.flx-message__avatar-col {
+  width: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.flx-message__compact-time {
+  font-size: 10px;
+  color: var(--flx-text-muted);
+  padding-top: 4px;
+  opacity: 0;
+  transition: opacity var(--flx-duration-fast) ease;
+  white-space: nowrap;
+}
+.flx-message__compact-time--visible { opacity: 1; }
+
+.flx-message__content { flex: 1; min-width: 0; }
+
+.flx-message__header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--flx-space-sm);
+  margin-bottom: 2px;
+}
+
+.flx-message__author {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--flx-text-primary);
+}
+
+.flx-message__timestamp {
+  font-size: 11px;
+  color: var(--flx-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+.flx-message__timestamp:hover { color: var(--flx-text-secondary); text-decoration: underline; }
+
+.flx-message__text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--flx-text-secondary);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+/* Ephemeral action bar */
+.flx-message__actions {
+  position: absolute;
+  top: -12px;
+  right: var(--flx-space-md);
+  display: flex;
+  gap: 2px;
+  background: var(--flx-bg-elevated);
+  border: 1px solid var(--flx-separator);
+  border-radius: var(--flx-radius-md);
+  padding: 2px 4px;
+  box-shadow: var(--flx-shadow-sm);
+}
+
+.flx-message__action {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--flx-radius-sm);
+  font-size: 16px;
+  transition: background var(--flx-duration-instant) ease;
+}
+.flx-message__action:hover { background: var(--flx-bg-surface); }

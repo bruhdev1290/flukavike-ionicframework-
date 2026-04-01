@@ -1,0 +1,11 @@
+.flx-status-dot {
+  display: inline-block;
+  border-radius: 50%;
+  border: 2px solid var(--flx-bg-tertiary);
+  flex-shrink: 0;
+}
+.flx-status-dot--online  { background: var(--flx-status-online); }
+.flx-status-dot--idle    { background: var(--flx-status-idle); }
+.flx-status-dot--dnd     { background: var(--flx-status-dnd); }
+.flx-status-dot--offline,
+.flx-status-dot--invisible { background: var(--flx-status-offline); }

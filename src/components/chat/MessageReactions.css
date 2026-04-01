@@ -1,0 +1,26 @@
+.flx-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.flx-reaction {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--flx-radius-pill);
+  background: var(--flx-bg-surface);
+  border: 1px solid var(--flx-separator);
+  cursor: pointer;
+  transition: background var(--flx-duration-instant) ease, border-color var(--flx-duration-instant) ease;
+}
+
+.flx-reaction--active {
+  background: var(--flx-accent-light);
+  border-color: var(--flx-accent);
+}
+
+.flx-reaction__emoji { font-size: 16px; line-height: 1; }
+.flx-reaction__count { font-size: 12px; font-weight: 600; color: var(--flx-text-secondary); }

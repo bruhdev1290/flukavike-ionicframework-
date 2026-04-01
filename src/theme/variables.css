@@ -1,0 +1,105 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Flukavike Design System
+   Discord dark palette + Ivory by Tapbots refinement
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Background layers (Discord's 5-level depth system) ─────────────────── */
+  --flx-bg-primary:    #313338;   /* main content area               */
+  --flx-bg-secondary:  #2b2d31;   /* channel/DM sidebar              */
+  --flx-bg-tertiary:   #1e1f22;   /* server rail + tab bar           */
+  --flx-bg-surface:    #383a40;   /* inputs, hover states, cards     */
+  --flx-bg-elevated:   #404249;   /* modals, popovers, tooltips      */
+  --flx-bg-overlay:    rgba(0, 0, 0, 0.70);
+
+  /* ── Accent (Discord blurple) ────────────────────────────────────────────── */
+  --flx-accent:        #5865f2;
+  --flx-accent-hover:  #4752c4;
+  --flx-accent-active: #3c45a5;
+  --flx-accent-light:  rgba(88, 101, 242, 0.15);
+  --flx-accent-glow:   rgba(88, 101, 242, 0.30);
+
+  /* ── Text ────────────────────────────────────────────────────────────────── */
+  --flx-text-primary:   #f2f3f5;
+  --flx-text-secondary: #b5bac1;
+  --flx-text-muted:     #80848e;
+  --flx-text-link:      #00a8fc;
+  --flx-text-danger:    #f23f43;
+
+  /* ── Status indicators ───────────────────────────────────────────────────── */
+  --flx-status-online:  #23a55a;
+  --flx-status-idle:    #f0b232;
+  --flx-status-dnd:     #f23f43;
+  --flx-status-offline: #80848e;
+
+  /* ── Semantic colours ────────────────────────────────────────────────────── */
+  --flx-separator:      rgba(255, 255, 255, 0.06);
+  --flx-mention-bg:     rgba(250, 168, 26, 0.10);
+  --flx-mention-border: #faa81a;
+  --flx-danger:         #f23f43;
+  --flx-success:        #23a55a;
+
+  /* ── Border radii ────────────────────────────────────────────────────────── */
+  --flx-radius-xs:   2px;
+  --flx-radius-sm:   4px;
+  --flx-radius-md:   8px;
+  --flx-radius-lg:   16px;
+  --flx-radius-xl:   24px;
+  --flx-radius-pill: 9999px;
+
+  /* ── Spacing ─────────────────────────────────────────────────────────────── */
+  --flx-space-xs:  4px;
+  --flx-space-sm:  8px;
+  --flx-space-md:  16px;
+  --flx-space-lg:  24px;
+  --flx-space-xl:  32px;
+
+  /* ── Ivory-inspired motion curves ───────────────────────────────────────── */
+  /* Spring with overshoot — used for interactive state changes (tab select, icon scale) */
+  --flx-spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Smooth deceleration — used for panel slides, page transitions             */
+  --flx-spring-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  /* Quick snap — used for hover states, tiny micro-interactions               */
+  --flx-spring-snap:   cubic-bezier(0.16, 1, 0.3, 1);
+
+  --flx-duration-instant: 80ms;
+  --flx-duration-fast:    180ms;
+  --flx-duration-base:    280ms;
+  --flx-duration-slow:    420ms;
+
+  /* ── Shadows ─────────────────────────────────────────────────────────────── */
+  --flx-shadow-sm: 0 1px 3px rgba(0,0,0,0.30);
+  --flx-shadow-md: 0 4px 16px rgba(0,0,0,0.40);
+  --flx-shadow-lg: 0 8px 32px rgba(0,0,0,0.50);
+
+  /* ── Typography ──────────────────────────────────────────────────────────── */
+  --flx-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --flx-font-mono:   'SF Mono', 'Fira Code', 'Cascadia Code', Menlo, monospace;
+
+  /* ── Override Ionic design tokens ───────────────────────────────────────── */
+  --ion-background-color:        var(--flx-bg-primary);
+  --ion-background-color-rgb:    49, 51, 56;
+  --ion-text-color:              var(--flx-text-primary);
+  --ion-text-color-rgb:          242, 243, 245;
+
+  --ion-color-primary:           var(--flx-accent);
+  --ion-color-primary-rgb:       88, 101, 242;
+  --ion-color-primary-contrast:  #ffffff;
+  --ion-color-primary-shade:     var(--flx-accent-hover);
+  --ion-color-primary-tint:      #6975f4;
+
+  --ion-color-danger:            var(--flx-danger);
+  --ion-color-success:           var(--flx-success);
+
+  --ion-toolbar-background:      var(--flx-bg-secondary);
+  --ion-toolbar-color:           var(--flx-text-primary);
+  --ion-tab-bar-background:      var(--flx-bg-tertiary);
+  --ion-tab-bar-border-color:    var(--flx-separator);
+  --ion-item-background:         transparent;
+  --ion-card-background:         var(--flx-bg-elevated);
+
+  --ion-font-family:             var(--flx-font-family);
+
+  --ion-safe-area-top:    env(safe-area-inset-top);
+  --ion-safe-area-bottom: env(safe-area-inset-bottom);
+}

@@ -1,0 +1,12 @@
+.flx-channel-header ion-toolbar {
+  --background: var(--flx-bg-secondary);
+  --border-color: var(--flx-separator);
+}
+
+.flx-channel-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--flx-bg-primary);
+}

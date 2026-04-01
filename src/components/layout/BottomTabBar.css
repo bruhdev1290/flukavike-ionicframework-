@@ -1,0 +1,53 @@
+.flx-tab-bar {
+  display: flex;
+  align-items: center;
+  background: var(--flx-bg-tertiary);
+  border-top: 1px solid var(--flx-separator);
+  padding-bottom: env(safe-area-inset-bottom);
+  height: calc(56px + env(safe-area-inset-bottom));
+  position: relative;
+}
+
+.flx-tab-bar__btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  height: 56px;
+  position: relative;
+  color: var(--flx-text-muted);
+  transition: color var(--flx-duration-fast) var(--flx-spring-smooth);
+}
+
+.flx-tab-bar__btn--active {
+  color: var(--flx-accent);
+}
+
+.flx-tab-bar__icon {
+  font-size: 24px;
+  transition: transform var(--flx-duration-fast) var(--flx-spring-bounce);
+}
+
+.flx-tab-bar__btn--active .flx-tab-bar__icon {
+  transform: scale(1.1);
+}
+
+.flx-tab-bar__badge {
+  position: absolute;
+  top: 8px;
+  right: calc(50% - 16px);
+  background: var(--flx-danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: var(--flx-radius-pill);
+  padding: 1px 5px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 14px;
+  border: 2px solid var(--flx-bg-tertiary);
+}

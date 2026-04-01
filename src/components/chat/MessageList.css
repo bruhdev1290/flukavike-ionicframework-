@@ -1,0 +1,17 @@
+.flx-message-list-content {
+  --background: var(--flx-bg-primary);
+}
+
+.flx-message-list {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--flx-space-sm);
+  min-height: 100%;
+  justify-content: flex-end;
+}
+
+/* Performance: skip rendering off-screen message groups */
+.flx-message:not(.flx-message--grouped) {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 72px;
+}

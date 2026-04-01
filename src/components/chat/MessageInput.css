@@ -1,0 +1,63 @@
+.flx-message-input {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--flx-space-xs);
+  background: var(--flx-bg-surface);
+  border-radius: var(--flx-radius-md);
+  margin: var(--flx-space-sm) var(--flx-space-md);
+  margin-bottom: calc(var(--flx-space-sm) + env(safe-area-inset-bottom));
+  padding: var(--flx-space-xs) var(--flx-space-xs);
+  border: 1px solid var(--flx-separator);
+  transition: border-color var(--flx-duration-fast) ease;
+}
+.flx-message-input:focus-within {
+  border-color: rgba(88,101,242,0.4);
+}
+
+.flx-message-input__textarea {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--flx-text-primary);
+  font-family: var(--flx-font-family);
+  font-size: 15px;
+  line-height: 1.5;
+  padding: 8px 4px;
+  resize: none;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.flx-message-input__textarea::placeholder { color: var(--flx-text-muted); }
+.flx-message-input__textarea::-webkit-scrollbar { width: 3px; }
+
+.flx-message-input__btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--flx-text-muted);
+  font-size: 22px;
+  padding: 6px;
+  border-radius: var(--flx-radius-sm);
+  display: flex;
+  align-items: center;
+  transition: color var(--flx-duration-fast) ease;
+  flex-shrink: 0;
+}
+.flx-message-input__btn:hover { color: var(--flx-text-secondary); }
+
+.flx-message-input__send {
+  background: var(--flx-accent);
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  font-size: 18px;
+  padding: 6px 8px;
+  border-radius: var(--flx-radius-sm);
+  display: flex;
+  align-items: center;
+  transition: background var(--flx-duration-fast) ease;
+  flex-shrink: 0;
+  animation: flx-fade-in var(--flx-duration-fast) var(--flx-spring-bounce);
+}
+.flx-message-input__send:hover { background: var(--flx-accent-hover); }

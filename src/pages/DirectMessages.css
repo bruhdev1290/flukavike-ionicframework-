@@ -1,0 +1,15 @@
+.flx-dm-content { --background: var(--flx-bg-primary); }
+.flx-dm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--flx-space-sm);
+  color: var(--flx-text-muted);
+  text-align: center;
+  padding: var(--flx-space-xl);
+}
+.flx-dm-empty__icon { font-size: 48px; }
+.flx-dm-empty__text { font-size: 17px; font-weight: 700; color: var(--flx-text-secondary); margin: 0; }
+.flx-dm-empty__hint { font-size: 14px; margin: 0; }

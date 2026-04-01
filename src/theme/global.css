@@ -1,0 +1,113 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Global resets, typography, shared animations
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: var(--flx-font-family);
+  background: var(--flx-bg-primary);
+  color: var(--flx-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbars (webkit) ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: var(--flx-radius-pill);
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+/* ── Ionic overrides ────────────────────────────────────────────────────── */
+ion-content { --background: var(--flx-bg-primary); }
+ion-toolbar  { --border-color: var(--flx-separator); }
+ion-item     { --border-color: var(--flx-separator); --color: var(--flx-text-primary); }
+ion-input, ion-textarea {
+  --color:            var(--flx-text-primary);
+  --placeholder-color:var(--flx-text-muted);
+  --background:       var(--flx-bg-surface);
+  --border-radius:    var(--flx-radius-md);
+}
+ion-button {
+  --border-radius:  var(--flx-radius-sm);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* ── Shimmer / skeleton animation ───────────────────────────────────────── */
+@keyframes flx-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+.flx-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--flx-bg-surface) 25%,
+    var(--flx-bg-elevated) 50%,
+    var(--flx-bg-surface) 75%
+  );
+  background-size: 800px 100%;
+  animation: flx-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--flx-radius-sm);
+}
+
+/* ── Login shake animation (Ivory-style error feedback) ─────────────────── */
+@keyframes flx-shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-8px); }
+  40%       { transform: translateX(8px); }
+  60%       { transform: translateX(-5px); }
+  80%       { transform: translateX(5px); }
+}
+.flx-shake { animation: flx-shake 0.4s var(--flx-spring-smooth); }
+
+/* ── Slide-in from right (MFA step transition) ───────────────────────────── */
+@keyframes flx-slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.flx-slide-in-right {
+  animation: flx-slide-in-right var(--flx-duration-base) var(--flx-spring-smooth);
+}
+
+/* ── Fade in ─────────────────────────────────────────────────────────────── */
+@keyframes flx-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.flx-fade-in {
+  animation: flx-fade-in var(--flx-duration-fast) var(--flx-spring-smooth);
+}
+
+/* ── Server rail icon squircle morph on active ───────────────────────────── */
+.flx-guild-icon {
+  border-radius: 50%;
+  transition: border-radius var(--flx-duration-fast) var(--flx-spring-smooth);
+}
+.flx-guild-icon--active,
+.flx-guild-icon:hover { border-radius: 30%; }
+
+/* ── Spring scale on interactive elements ────────────────────────────────── */
+.flx-pressable {
+  transition: transform var(--flx-duration-instant) var(--flx-spring-bounce);
+}
+.flx-pressable:active { transform: scale(0.94); }
+
+/* ── Pill highlight (BottomTabBar active indicator) ─────────────────────── */
+.flx-tab-pill {
+  position: absolute;
+  background: var(--flx-accent-light);
+  border-radius: var(--flx-radius-pill);
+  transition: transform var(--flx-duration-base) var(--flx-spring-bounce),
+              width var(--flx-duration-fast) var(--flx-spring-smooth);
+  pointer-events: none;
+}
