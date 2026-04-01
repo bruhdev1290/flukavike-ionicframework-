@@ -86,6 +86,7 @@ export const Login: React.FC = () => {
       <IonContent className="flx-login-content" fullscreen>
         <div className="flx-login-bg" />
 
+        <div className="flx-login-center">
         <div className={`flx-login-card${shake ? ' flx-shake' : ''}`}>
           <div className="flx-login-card__logo">
             <FluxerLogo />
@@ -233,6 +234,7 @@ export const Login: React.FC = () => {
             </div>
           )}
         </div>
+        </div>{/* flx-login-center */}
       </IonContent>
 
       <IonToast

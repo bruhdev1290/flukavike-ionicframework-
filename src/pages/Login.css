@@ -4,10 +4,22 @@
   --background: var(--flx-bg-tertiary);
 }
 
-.flx-login-content {
+/* IonContent uses a shadow DOM scroll host — flex on the host has no effect.
+   Target ::part(scroll) to center content inside the actual scrollable area. */
+.flx-login-content::part(scroll) {
   display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.flx-login-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: var(--flx-space-lg) var(--flx-space-md);
+  width: 100%;
 }
 
 .flx-login-bg {

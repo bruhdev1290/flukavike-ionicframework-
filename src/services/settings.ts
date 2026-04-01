@@ -1,12 +1,12 @@
 /**
  * Mirrors the desktop client's settings.json `app_url` key.
  * Stored in Capacitor Preferences so it persists across app restarts.
- * Default: 'https://fluxer.app' (public instance)
+ * Default: 'https://web.fluxer.app' — matches the desktop client's stable default.
  */
 import { Preferences } from '@capacitor/preferences';
 
 const APP_URL_KEY   = 'fluxer_app_url';
-const DEFAULT_APP_URL = 'https://fluxer.app';
+export const DEFAULT_APP_URL = 'https://web.fluxer.app';
 
 export async function getAppUrl(): Promise<string> {
   const { value } = await Preferences.get({ key: APP_URL_KEY });

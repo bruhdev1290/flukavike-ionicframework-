@@ -1,6 +1,12 @@
 import { CapacitorHttp } from '@capacitor/core';
 import { FluxerWellKnown } from '../types/fluxer';
-import { getAppUrl } from './settings';
+import { getAppUrl, DEFAULT_APP_URL } from './settings';
+
+// Canonical public-instance origins — all use the same hardcoded fallback
+const PUBLIC_ORIGINS = new Set([
+  'https://web.fluxer.app',
+  'https://fluxer.app',
+]);
 
 const DISCOVERY_TTL_MS = 5 * 60 * 1000;
 
