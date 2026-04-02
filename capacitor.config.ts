@@ -12,7 +12,17 @@ const config: CapacitorConfig = {
     // instead of 'localhost'. CapacitorHttp bypasses CORS so this doesn't affect
     // API calls on native.
     hostname: 'web.fluxer.app',
+    allowNavigation: [
+      '*.hcaptcha.com',
+      'hcaptcha.com',
+      // Cloudflare Turnstile challenge domain
+      'challenges.cloudflare.com',
+    ],
   },
+  // Spoof the WebView User-Agent to look like standard Mobile Safari.
+  // This helps bypass Cloudflare's strict WebView bot-detection.
+  overrideUserAgent:
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1',
   plugins: {
     CapacitorHttp: {
       // Routes all fetch() calls through native URLSession (iOS) / OkHttp (Android)
