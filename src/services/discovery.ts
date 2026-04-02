@@ -1,4 +1,4 @@
-import { CapacitorHttp } from '@capacitor/core';
+import { CapacitorHttp, Capacitor } from '@capacitor/core';
 import { FluxerWellKnown } from '../types/fluxer';
 import { getAppUrl, DEFAULT_APP_URL } from './settings';
 
@@ -14,6 +14,10 @@ const DEFAULT_ENDPOINTS: FluxerWellKnown = {
   api:     'https://api.fluxer.app/v1',
   gateway: 'wss://gateway.fluxer.app',
   cdn:     'https://cdn.fluxer.app',
+  captcha: {
+    provider: 'hcaptcha',
+    hcaptcha_site_key: 'e6e09352-d1e4-4924-80b6-e136c3b1a061',
+  },
 };
 
 interface CacheEntry {
@@ -23,6 +27,17 @@ interface CacheEntry {
 
 const cache = new Map<string, CacheEntry>();
 
+// In development, all requests go through the Vite proxy
+// NOTE: In Capacitor native apps, import.meta.env.DEV might be false but we still
+// need to use full URLs, not proxy paths. Proxy only works in browser dev server.
+const isDev = import.meta.env.DEV;
+
+// Detect if we're running in a Capacitor native app (iOS/Android)
+const isNative = Capacitor.isNativePlatform();
+
+// In native apps, always use full URLs regardless of dev mode
+const useProxy = isDev && !isNative;
+
 export async function discoverEndpoints(instanceBaseUrl?: string): Promise<FluxerWellKnown> {
   const baseUrl = instanceBaseUrl ?? await getAppUrl();
 
@@ -31,9 +46,15 @@ export async function discoverEndpoints(instanceBaseUrl?: string): Promise<Fluxe
     return cached.data;
   }
 
+  // Use proxy path for browser dev server only, direct URL for native apps and production
+  console.log(`[discovery] baseUrl=${baseUrl}, isDev=${isDev}, isNative=${isNative}, useProxy=${useProxy}`);
+  const discoveryUrl = useProxy
+    ? `/proxy/.well-known/fluxer`
+    : `${baseUrl}/.well-known/fluxer`;
+
   try {
     const response = await CapacitorHttp.get({
-      url: `${baseUrl}/.well-known/fluxer`,
+      url: discoveryUrl,
       headers: { Accept: 'application/json' },
     });
 
@@ -44,21 +65,59 @@ export async function discoverEndpoints(instanceBaseUrl?: string): Promise<Fluxe
       ? JSON.parse(response.data)
       : response.data;
 
+    const apiUrl = useProxy ? '/proxy/v1' : (raw.endpoints?.api ?? raw.api ?? DEFAULT_ENDPOINTS.api);
+    console.log(`[discovery] API URL resolved to: ${apiUrl}`);
     const data: FluxerWellKnown = {
-      api:     raw.endpoints?.api    ?? raw.api    ?? DEFAULT_ENDPOINTS.api,
+      api:     apiUrl,
       gateway: raw.endpoints?.gateway ?? raw.gateway ?? DEFAULT_ENDPOINTS.gateway,
       cdn:     raw.endpoints?.cdn    ?? raw.cdn    ?? DEFAULT_ENDPOINTS.cdn,
       version: raw.apiCodeVersion,
+      captcha: raw.captcha ?? raw.captcha_configuration ?? DEFAULT_ENDPOINTS.captcha,
+      features: raw.features ?? raw.feature_configuration,
     };
 
     cache.set(baseUrl, { data, fetchedAt: Date.now() });
     return data;
-  } catch {
-    // Public instance: fall back to known defaults rather than throwing
-    if (baseUrl === 'https://fluxer.app') return DEFAULT_ENDPOINTS;
+  } catch (err) {
+    // Public instances: fall back to known defaults rather than throwing
+    if (PUBLIC_ORIGINS.has(baseUrl)) {
+      console.warn(`Discovery failed for ${baseUrl}, using default endpoints:`, err);
+      return DEFAULT_ENDPOINTS;
+    }
     throw new Error(
       `Could not discover endpoints for ${baseUrl}. Verify the server URL is correct.`,
     );
+  }
+}
+
+export async function verifyEndpoint(instanceBaseUrl: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  // Use proxy path for browser dev server only, direct URL for native apps and production
+  const verificationUrl = useProxy
+    ? `/proxy/.well-known/fluxer`
+    : `${instanceBaseUrl}/.well-known/fluxer`;
+
+  try {
+    const response = await CapacitorHttp.get({
+      url: verificationUrl,
+      headers: { Accept: 'application/json' },
+      // Shorter timeout for quick verification
+      connectTimeout: 5000,
+      readTimeout: 5000,
+    });
+
+    if (response.status >= 200 && response.status < 300) {
+      return { ok: true };
+    }
+    return { ok: false, error: `Server returned HTTP status ${response.status}` };
+  } catch (err) {
+    const message = (err as Error).message || 'An unknown network error occurred.';
+    if (message.includes('timeout')) {
+      return { ok: false, error: 'The request timed out. The server may be offline or unreachable.' };
+    }
+    if (message.includes('SSL')) {
+      return { ok: false, error: 'A secure connection could not be established. Check the server\'s SSL certificate.' };
+    }
+    return { ok: false, error: `A network error occurred: ${message}` };
   }
 }
 

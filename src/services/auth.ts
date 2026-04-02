@@ -19,9 +19,15 @@ export async function login(
   password: string,
   instanceUrl?: string,
   inviteCode?: string,
+  hCaptchaToken?: string,
 ): Promise<LoginResponse> {
   const api = await apiBase(instanceUrl);
-  const body = { email, password, ...(inviteCode ? { inviteCode } : {}) };
+  const body = {
+    email,
+    password,
+    ...(inviteCode ? { inviteCode } : {}),
+    ...(hCaptchaToken ? { 'h-captcha-response': hCaptchaToken } : {}),
+  };
   const response = await http.post<LoginResponse>(`${api}/auth/login`, body);
 
   if (isLoginSuccess(response)) {

@@ -4,7 +4,7 @@ import React, {
   useReducer,
   ReactNode,
 } from 'react';
-import { AuthStateName, FluxerUser, MfaMethod } from '../types/fluxer';
+import { AuthStateName, FluxerUser, MfaMethod, FluxerWellKnown } from '../types/fluxer';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // State shape
@@ -15,6 +15,7 @@ export interface AuthStateShape {
   mfaTicket: string | null;
   mfaAllowedMethods: MfaMethod[];
   error: string | null;
+  discovery: FluxerWellKnown | null;
 }
 
 export const initialAuthState: AuthStateShape = {
@@ -23,6 +24,7 @@ export const initialAuthState: AuthStateShape = {
   mfaTicket: null,
   mfaAllowedMethods: [],
   error: null,
+  discovery: null,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -34,7 +36,8 @@ export type AuthAction =
   | { type: 'MFA_REQUIRED'; ticket: string; allowedMethods: MfaMethod[] }
   | { type: 'IP_AUTH_REQUIRED' }
   | { type: 'LOGOUT' }
-  | { type: 'ERROR'; message: string };
+  | { type: 'ERROR'; message: string }
+  | { type: 'SET_DISCOVERY'; payload: FluxerWellKnown };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Reducer — pure state transitions
@@ -46,6 +49,7 @@ export function authReducer(state: AuthStateShape, action: AuthAction): AuthStat
 
     case 'AUTHENTICATED':
       return {
+        ...state,
         state: 'authenticated',
         user: action.user,
         mfaTicket: null,
@@ -70,6 +74,9 @@ export function authReducer(state: AuthStateShape, action: AuthAction): AuthStat
 
     case 'ERROR':
       return { ...state, state: 'error', error: action.message };
+
+    case 'SET_DISCOVERY':
+      return { ...state, discovery: action.payload };
 
     default:
       return state;

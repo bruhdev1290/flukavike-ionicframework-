@@ -42,6 +42,8 @@ async function request<T>(
     ...(body !== undefined && { data: body }),
   };
 
+  console.log(`[http] ${method} ${url}`, body ? 'with body' : '');
+
   let response: HttpResponse;
   try {
     switch (method) {
@@ -51,7 +53,9 @@ async function request<T>(
       case 'PATCH':  response = await CapacitorHttp.patch(options);  break;
       case 'DELETE': response = await CapacitorHttp.delete(options); break;
     }
+    console.log(`[http] ${method} ${url} -> ${response.status}`);
   } catch (err) {
+    console.error(`[http] ${method} ${url} -> Network error:`, err);
     throw new Error(`Network error: ${(err as Error).message}`);
   }
 

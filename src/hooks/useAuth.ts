@@ -9,6 +9,7 @@ import {
   isLoginSuccess,
   isMfaRequired,
 } from '../services/auth';
+import { discoverEndpoints } from '../services/discovery';
 import { MfaMethod } from '../types/fluxer';
 
 export function useAuth() {
@@ -19,6 +20,10 @@ export function useAuth() {
     async function initAuth() {
       dispatch({ type: 'AUTHENTICATING' });
       try {
+        // Discover endpoints first, as it's needed for all API calls
+        const discovery = await discoverEndpoints();
+        dispatch({ type: 'SET_DISCOVERY', payload: discovery });
+
         const user = await validateSession();
         dispatch({ type: 'AUTHENTICATED', user });
       } catch {
@@ -35,10 +40,16 @@ export function useAuth() {
   }, []);
 
   // ── Login ─────────────────────────────────────────────────────────────────
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (
+    email: string,
+    password: string,
+    instanceUrl?: string,
+    inviteCode?: string,
+    hCaptchaToken?: string,
+  ) => {
     dispatch({ type: 'AUTHENTICATING' });
     try {
-      const response = await authLogin(email, password);
+      const response = await authLogin(email, password, instanceUrl, inviteCode, hCaptchaToken);
 
       if (isLoginSuccess(response)) {
         if (response.pending_verification) {
@@ -84,6 +95,7 @@ export function useAuth() {
     authState:         authState.state,
     mfaAllowedMethods: authState.mfaAllowedMethods,
     error:             authState.error,
+    discovery:         authState.discovery,
     login,
     submitMfa,
     logout,

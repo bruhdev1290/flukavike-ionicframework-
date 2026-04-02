@@ -28,9 +28,9 @@ export const AppShell: React.FC<Props> = ({
   const activeGuild = guilds.find(g => g.id === activeGuildId) ?? null;
 
   return (
-    <IonPage className="flx-app-shell">
+    <div className="flx-app-shell" style={{ display: 'flex', height: '100%', width: '100%' }}>
       {/* Desktop: side-by-side layout via IonSplitPane */}
-      <IonSplitPane contentId="main-content" when="lg">
+      <IonSplitPane contentId="main-content" when="lg" style={{ height: '100%' }}>
         <IonMenu contentId="main-content" menuId="sidebar" className="flx-sidebar-menu">
           <IonContent>
             <div className="flx-sidebar">
@@ -49,12 +49,12 @@ export const AppShell: React.FC<Props> = ({
           </IonContent>
         </IonMenu>
 
-        <IonPage id="main-content" className="flx-main-content">
+        <div id="main-content" className="flx-main-content" style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
           {children}
           {/* Mobile: bottom tab bar */}
           <BottomTabBar />
-        </IonPage>
+        </div>
       </IonSplitPane>
-    </IonPage>
+    </div>
   );
 };

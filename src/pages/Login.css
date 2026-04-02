@@ -71,7 +71,13 @@
 .flx-input-group { display: flex; flex-direction: column; gap: 6px; }
 .flx-label { font-size: 12px; font-weight: 700; color: var(--flx-text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
 
-.flx-input-wrapper { position: relative; }
+.flx-input-wrapper {
+  position: relative;
+}
+
+.flx-input--has-icon {
+  padding-right: 44px;
+}
 
 .flx-input {
   width: 100%;
@@ -86,7 +92,6 @@
   transition: border-color var(--flx-duration-fast) ease, box-shadow var(--flx-duration-fast) ease;
   box-sizing: border-box;
 }
-.flx-input--has-icon { padding-right: 40px; }
 .flx-input:focus {
   border-color: var(--flx-accent);
   box-shadow: 0 0 0 3px var(--flx-accent-glow);
@@ -98,21 +103,46 @@
 
 .flx-input-icon-btn {
   position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--flx-text-muted);
-  font-size: 18px;
+  top: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 44px;
+  background: transparent;
+  border: none;
+  color: var(--ion-color-medium);
+  font-size: 20px;
+  cursor: pointer;
   padding: 0;
 }
-.flx-input-icon-btn:hover { color: var(--flx-text-secondary); }
 
-.flx-hint { font-size: 12px; color: var(--flx-text-muted); }
+.flx-input-status-icon {
+  cursor: default;
+  pointer-events: none;
+}
+
+.flx-input-status-icon ion-spinner {
+  width: 20px;
+  height: 20px;
+}
+
+.flx-input-icon-btn:hover {
+  color: var(--ion-color-dark);
+}
+
+.flx-hint {
+  display: block;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  margin-top: 6px;
+  text-align: left;
+}
+
+.flx-hint--error {
+  color: var(--ion-color-danger);
+}
 
 /* ── Primary button ─────────────────────────────────────────────────────── */
 .flx-login-card__btn.button-native,
@@ -165,4 +195,13 @@
   background: var(--flx-accent-light);
   border-color: var(--flx-accent);
   color: var(--flx-accent);
+}
+
+/* ── hCaptcha container - prevent focus stealing ─────────────────────────── */
+.h-captcha {
+  position: relative;
+}
+
+.h-captcha iframe {
+  pointer-events: auto;
 }

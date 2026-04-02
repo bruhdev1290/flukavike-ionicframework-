@@ -7,6 +7,20 @@ const config: CapacitorConfig = {
   server: {
     iosScheme: 'https',
     androidScheme: 'https',
+    // Use a proxy for local development to bypass CORS
+    proxy: {
+      '/proxy': {
+        target: 'https://api.fluxer.app',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/proxy': '',
+        },
+        // Add required headers for the Fluxer API
+        onProxyReq: (proxyReq) => {
+          proxyReq.setHeader('Origin', 'https://api.fluxer.app');
+        },
+      },
+    },
   },
   plugins: {
     CapacitorHttp: {

@@ -6,6 +6,18 @@ export interface FluxerWellKnown {
   gateway: string;  // e.g. "wss://gateway.fluxer.app"
   cdn: string;      // e.g. "https://cdn.fluxer.app"
   version?: string;
+  captcha?: {
+    provider: 'hcaptcha' | 'turnstile' | 'none';
+    hcaptcha_site_key?: string;
+    turnstile_site_key?: string;
+  };
+  features?: {
+    sms_mfa_enabled: boolean;
+    voice_enabled: boolean;
+    stripe_enabled: boolean;
+    self_hosted: boolean;
+    manual_review_enabled: boolean;
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

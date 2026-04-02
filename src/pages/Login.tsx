@@ -1,15 +1,104 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   IonPage, IonContent, IonButton, IonToast, IonLoading,
   IonIcon, IonSpinner,
 } from '@ionic/react';
-import { chevronDownOutline, chevronUpOutline, eyeOutline, eyeOffOutline } from 'ionicons/icons';
+import {
+  chevronDownOutline, chevronUpOutline, eyeOutline, eyeOffOutline,
+  checkmarkCircleOutline, warningOutline,
+} from 'ionicons/icons';
 import { useIonRouter } from '@ionic/react';
 import { useAuth } from '../hooks/useAuth';
 import { MfaMethod } from '../types/fluxer';
 import { setAppUrl, getAppUrl } from '../services/settings';
-import { clearDiscoveryCache } from '../services/discovery';
+import { clearDiscoveryCache, verifyEndpoint } from '../services/discovery';
 import './Login.css';
+
+// hCaptcha component (can be moved to its own file)
+const HCaptcha = ({ sitekey, onVerify }: { sitekey: string, onVerify: (token: string) => void }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const widgetIdRef = useRef<string | null>(null);
+  const onVerifyRef = useRef(onVerify);
+
+  // Keep callback ref up to date
+  useEffect(() => {
+    onVerifyRef.current = onVerify;
+  }, [onVerify]);
+
+  useEffect(() => {
+    console.log('[hCaptcha] Initializing with sitekey:', sitekey);
+    
+    // Expose callback globally for hCaptcha to call
+    (window as unknown as Record<string, unknown>).hcaptchaCallback = (token: string) => {
+      console.log('[hCaptcha] Token received, length:', token?.length);
+      onVerifyRef.current(token);
+    };
+
+    const loadScript = () => {
+      return new Promise<void>((resolve, reject) => {
+        if (document.querySelector('script[src*="hcaptcha.com"]')) {
+          console.log('[hCaptcha] Script already loaded');
+          resolve();
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://js.hcaptcha.com/1/api.js?render=explicit';
+        script.async = true;
+        script.defer = true;
+        script.onload = () => {
+          console.log('[hCaptcha] Script loaded');
+          resolve();
+        };
+        script.onerror = () => reject(new Error('Failed to load hCaptcha'));
+        document.body.appendChild(script);
+      });
+    };
+
+    const renderWidget = () => {
+      const hcaptcha = (window as unknown as { hcaptcha?: { render: (container: string | HTMLElement, options: { sitekey: string; callback: string; tabindex?: number }) => string } }).hcaptcha;
+      console.log('[hCaptcha] renderWidget called, hcaptcha available:', !!hcaptcha, 'container:', !!containerRef.current);
+      if (hcaptcha && containerRef.current && !widgetIdRef.current) {
+        try {
+          widgetIdRef.current = hcaptcha.render(containerRef.current, {
+            sitekey,
+            callback: 'hcaptchaCallback',
+            tabindex: -1, // Prevent auto-focus
+          });
+          console.log('[hCaptcha] Widget rendered, ID:', widgetIdRef.current);
+        } catch (e) {
+          console.error('[hCaptcha] render error:', e);
+        }
+      }
+    };
+
+    loadScript().then(() => {
+      // Wait for hcaptcha to be ready
+      let attempts = 0;
+      const checkAndRender = () => {
+        attempts++;
+        if ((window as unknown as { hcaptcha?: unknown }).hcaptcha) {
+          renderWidget();
+        } else if (attempts < 50) {
+          setTimeout(checkAndRender, 100);
+        } else {
+          console.error('[hCaptcha] Failed to load after 50 attempts');
+        }
+      };
+      checkAndRender();
+    }).catch(console.error);
+
+    return () => {
+      if (widgetIdRef.current) {
+        const hcaptcha = (window as unknown as { hcaptcha?: { reset: (id: string) => void } }).hcaptcha;
+        hcaptcha?.reset(widgetIdRef.current);
+        widgetIdRef.current = null;
+      }
+    };
+  }, [sitekey]); // Remove onVerify from deps to prevent re-renders
+
+  return <div ref={containerRef} style={{ minHeight: 78 }} tabIndex={-1} />;
+};
+
 
 // Fluxer logo as inline SVG (blurple F)
 const FluxerLogo = () => (
@@ -24,7 +113,14 @@ const FluxerLogo = () => (
 
 export const Login: React.FC = () => {
   const router = useIonRouter();
-  const { authState, login, submitMfa, mfaAllowedMethods, error } = useAuth();
+  const {
+    authState,
+    login,
+    submitMfa,
+    mfaAllowedMethods,
+    error,
+    discovery,
+  } = useAuth();
 
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -36,6 +132,22 @@ export const Login: React.FC = () => {
   const [serverUrl, setServerUrl]       = useState('https://fluxer.app');
   const [showToast, setShowToast]       = useState(false);
   const [shake, setShake]               = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'verifying' | 'valid' | 'invalid'>('idle');
+  const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [hCaptchaToken, setHCaptchaToken] = useState<string | null>(null);
+  const [forceShowCaptcha, setForceShowCaptcha] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  // Memoize captcha verification callback to prevent re-renders
+  const handleCaptchaVerify = useCallback((token: string) => {
+    console.log('[Login] hCaptcha verified, token length:', token?.length);
+    setHCaptchaToken(token);
+  }, []);
+
+  // Memoize whether to show captcha
+  const showCaptcha = useMemo(() => {
+    return forceShowCaptcha || discovery?.captcha?.provider === 'hcaptcha' || serverUrl.includes('fluxer.app');
+  }, [forceShowCaptcha, discovery?.captcha?.provider, serverUrl]);
 
   const isLoading   = authState === 'authenticating';
   const isMfa       = authState === 'mfa_required';
@@ -43,6 +155,13 @@ export const Login: React.FC = () => {
 
   // Load saved server URL on mount
   useEffect(() => { getAppUrl().then(setServerUrl); }, []);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('[Login] discovery:', discovery);
+    console.log('[Login] forceShowCaptcha:', forceShowCaptcha);
+    console.log('[Login] hCaptchaToken:', !!hCaptchaToken);
+  }, [discovery, forceShowCaptcha, hCaptchaToken]);
 
   // Redirect when authenticated
   useEffect(() => {
@@ -53,13 +172,28 @@ export const Login: React.FC = () => {
 
   // Show toast + shake on error
   useEffect(() => {
+    console.log('[Login] error effect triggered, error:', error);
     if (error) {
+      setLoginError(error);
       setShowToast(true);
       setShake(true);
       const t = setTimeout(() => setShake(false), 500);
+      // If captcha is required, force show the captcha widget
+      if (error.toLowerCase().includes('captcha')) {
+        console.log('[Login] Captcha error detected, forcing captcha display');
+        setForceShowCaptcha(true);
+      }
+      // Reset captcha token after error so user must solve it again
+      setHCaptchaToken(null);
+      try {
+        const hcaptcha = (window as unknown as { hcaptcha?: { reset: () => void } }).hcaptcha;
+        hcaptcha?.reset();
+      } catch (e) {
+        // ignore reset errors
+      }
       return () => clearTimeout(t);
     }
-  }, [error]);
+  }, [error, authState]);
 
   // Set MFA method default when methods load
   useEffect(() => {
@@ -68,7 +202,14 @@ export const Login: React.FC = () => {
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) return;
-    await login(email.trim(), password.trim());
+    console.log('[Login] Attempting login, captcha token present:', !!hCaptchaToken);
+    setLoginError(null);
+    try {
+      await login(email.trim(), password.trim(), undefined, undefined, hCaptchaToken ?? undefined);
+    } catch (e) {
+      console.error('[Login] Login failed:', e);
+      setLoginError((e as Error).message);
+    }
   };
 
   const handleMfaSubmit = async () => {
@@ -77,8 +218,18 @@ export const Login: React.FC = () => {
   };
 
   const handleServerUrlBlur = async () => {
-    await setAppUrl(serverUrl);
-    clearDiscoveryCache();
+    setVerificationStatus('verifying');
+    setVerificationError(null);
+    const result = await verifyEndpoint(serverUrl);
+
+    if (result.ok) {
+      setVerificationStatus('valid');
+      await setAppUrl(serverUrl);
+      clearDiscoveryCache();
+    } else {
+      setVerificationStatus('invalid');
+      setVerificationError(result.error);
+    }
   };
 
   return (
@@ -162,6 +313,13 @@ export const Login: React.FC = () => {
             <div className="flx-login-card__section">
               <h2 className="flx-login-card__title">Welcome back</h2>
               <p className="flx-login-card__subtitle">Sign in to continue to Fluxer.</p>
+              
+              {/* Debug info - remove in production */}
+              {loginError && (
+                <div style={{ background: '#ff4444', color: 'white', padding: 8, borderRadius: 4, marginBottom: 16, fontSize: 12 }}>
+                  Error: {loginError}
+                </div>
+              )}
 
               <div className="flx-input-group">
                 <label className="flx-label">Email</label>
@@ -170,6 +328,9 @@ export const Login: React.FC = () => {
                   className="flx-input"
                   placeholder="you@example.com"
                   autoComplete="email"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleLogin()}
@@ -203,7 +364,7 @@ export const Login: React.FC = () => {
                 expand="block"
                 className="flx-login-card__btn"
                 onClick={handleLogin}
-                disabled={isLoading || !email.trim() || !password.trim()}
+                disabled={isLoading || !email.trim() || !password.trim() || ((forceShowCaptcha || discovery?.captcha?.provider === 'hcaptcha') && !hCaptchaToken)}
               >
                 {isLoading ? <IonSpinner name="crescent" /> : 'Log In'}
               </IonButton>
@@ -220,15 +381,47 @@ export const Login: React.FC = () => {
               {showAdvanced && (
                 <div className="flx-input-group flx-fade-in">
                   <label className="flx-label">Server URL</label>
-                  <input
-                    type="url"
-                    className="flx-input"
-                    placeholder="https://fluxer.app"
-                    value={serverUrl}
-                    onChange={e => setServerUrl(e.target.value)}
-                    onBlur={handleServerUrlBlur}
-                  />
-                  <span className="flx-hint">Leave as default for the public instance.</span>
+                  <div className="flx-input-wrapper">
+                    <input
+                      type="url"
+                      className="flx-input flx-input--has-icon"
+                      placeholder="https://fluxer.app"
+                      value={serverUrl}
+                      onChange={e => {
+                        setServerUrl(e.target.value);
+                        setVerificationStatus('idle');
+                      }}
+                      onBlur={handleServerUrlBlur}
+                    />
+                    <div className="flx-input-icon-btn flx-input-status-icon">
+                      {verificationStatus === 'verifying' && <IonSpinner name="crescent" />}
+                      {verificationStatus === 'valid' && <IonIcon icon={checkmarkCircleOutline} color="success" />}
+                      {verificationStatus === 'invalid' && <IonIcon icon={warningOutline} color="danger" />}
+                    </div>
+                  </div>
+                  {verificationStatus === 'invalid' && verificationError && (
+                    <span className="flx-hint flx-hint--error">{verificationError}</span>
+                  )}
+                  {verificationStatus !== 'invalid' && (
+                    <span className="flx-hint">Leave as default for the public instance.</span>
+                  )}
+                </div>
+              )}
+
+              {/* HCaptcha - always show for public instances or when server requires it */}
+              {showCaptcha && (
+                <div style={{ marginTop: 16 }}>
+                  <label className="flx-label">Security Check</label>
+                  <div style={{ display: 'flex', justifyContent: 'center', pointerEvents: 'auto' }}>
+                    <HCaptcha
+                      key="hcaptcha-widget" // Stable key to prevent re-mounting
+                      sitekey={discovery?.captcha?.hcaptcha_site_key ?? 'e6e09352-d1e4-4924-80b6-e136c3b1a061'}
+                      onVerify={handleCaptchaVerify}
+                    />
+                  </div>
+                  {!hCaptchaToken && (
+                    <span className="flx-hint">Please complete the captcha above to continue</span>
+                  )}
                 </div>
               )}
             </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonMenuButton,
 } from '@ionic/react';
@@ -67,6 +67,33 @@ const Home: React.FC = () => {
   const [activeGuildId, setActiveGuildId]     = useState<string | null>('1');
   const [activeChannelId, setActiveChannelId] = useState<string | null>('ch-1');
   const [messages, setMessages]               = useState<FluxerMessage[]>(STUB_MESSAGES);
+  const [error, setError]                     = useState<Error | null>(null);
+
+  useEffect(() => {
+    console.log('[Home] Component mounted');
+    return () => console.log('[Home] Component unmounting');
+  }, []);
+
+  // Error boundary for this component
+  useEffect(() => {
+    const handleError = (e: ErrorEvent) => {
+      console.error('[Home] Global error:', e.error);
+      setError(e.error);
+    };
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+
+  if (error) {
+    return (
+      <IonPage>
+        <IonContent className="ion-padding">
+          <h1>Something went wrong</h1>
+          <pre>{error.message}</pre>
+        </IonContent>
+      </IonPage>
+    );
+  }
 
   const activeChannel = STUB_CATEGORIES
     .flatMap(c => c.channels)
@@ -84,33 +111,35 @@ const Home: React.FC = () => {
   };
 
   return (
-    <AppShell
-      guilds={STUB_GUILDS}
-      categories={STUB_CATEGORIES}
-      activeGuildId={activeGuildId}
-      activeChannelId={activeChannelId}
-      onGuildSelect={setActiveGuildId}
-      onChannelSelect={setActiveChannelId}
-    >
-      <IonHeader className="flx-channel-header">
-        <IonToolbar>
-          <IonButtons slot="start">
-            <IonMenuButton />
-          </IonButtons>
-          <IonTitle>
-            {activeChannel ? `# ${activeChannel.name}` : 'Fluxer'}
-          </IonTitle>
-        </IonToolbar>
-      </IonHeader>
+    <IonPage>
+      <AppShell
+        guilds={STUB_GUILDS}
+        categories={STUB_CATEGORIES}
+        activeGuildId={activeGuildId}
+        activeChannelId={activeChannelId}
+        onGuildSelect={setActiveGuildId}
+        onChannelSelect={setActiveChannelId}
+      >
+        <IonHeader className="flx-channel-header">
+          <IonToolbar>
+            <IonButtons slot="start">
+              <IonMenuButton />
+            </IonButtons>
+            <IonTitle>
+              {activeChannel ? `# ${activeChannel.name}` : 'Fluxer'}
+            </IonTitle>
+          </IonToolbar>
+        </IonHeader>
 
-      <div className="flx-channel-view">
-        <MessageList messages={messages} />
-        <MessageInput
-          channelName={activeChannel?.name}
-          onSend={handleSend}
-        />
-      </div>
-    </AppShell>
+        <div className="flx-channel-view">
+          <MessageList messages={messages} />
+          <MessageInput
+            channelName={activeChannel?.name}
+            onSend={handleSend}
+          />
+        </div>
+      </AppShell>
+    </IonPage>
   );
 };
 
