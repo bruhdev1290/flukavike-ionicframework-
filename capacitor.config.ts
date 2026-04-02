@@ -31,14 +31,13 @@ const config: CapacitorConfig = {
       iosSplashResourceName: 'Splash',
     },
   },
-,
-    android: {
-       buildOptions: {
-          keystorePath: 'undefined',
-          keystoreAlias: 'undefined',
-          signingType: 'apksigner',
-       }
-    }
-  };
+  android: {
+    buildOptions: {
+      keystorePath: 'undefined',
+      keystoreAlias: 'undefined',
+      signingType: 'apksigner',
+    },
+  },
+};
 
 export default config;
