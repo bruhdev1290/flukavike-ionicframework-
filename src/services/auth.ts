@@ -10,7 +10,9 @@ import {
 } from '../types/fluxer';
 
 async function apiBase(instanceUrl?: string): Promise<string> {
+  console.log('[auth] apiBase called with instanceUrl:', instanceUrl);
   const endpoints = await discoverEndpoints(instanceUrl);
+  console.log('[auth] discoverEndpoints returned:', endpoints);
   return endpoints.api;
 }
 
@@ -21,14 +23,18 @@ export async function login(
   inviteCode?: string,
   hCaptchaToken?: string,
 ): Promise<LoginResponse> {
+  console.log('[auth] login called, instanceUrl:', instanceUrl, 'has captcha:', !!hCaptchaToken);
   const api = await apiBase(instanceUrl);
+  const loginUrl = `${api}/auth/login`;
+  console.log('[auth] login URL:', loginUrl);
   const body = {
     email,
     password,
     ...(inviteCode ? { inviteCode } : {}),
     ...(hCaptchaToken ? { 'h-captcha-response': hCaptchaToken } : {}),
   };
-  const response = await http.post<LoginResponse>(`${api}/auth/login`, body);
+  console.log('[auth] login body:', { ...body, password: '***', 'h-captcha-response': body['h-captcha-response'] ? '***' : undefined });
+  const response = await http.post<LoginResponse>(loginUrl, body);
 
   if (isLoginSuccess(response)) {
     await setStoredToken(response.token, response.user_id);

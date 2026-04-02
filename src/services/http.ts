@@ -81,6 +81,7 @@ async function request<T>(
   }
 
   // Non-2xx error
+  console.error(`[http] ${method} ${url} -> Error ${response.status}:`, response.data);
   const apiErr: FluxerApiError = typeof response.data === 'object' && response.data !== null
     ? response.data as FluxerApiError
     : { code: response.status, message: 'An error occurred' };

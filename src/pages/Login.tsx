@@ -15,7 +15,7 @@ import { clearDiscoveryCache, verifyEndpoint } from '../services/discovery';
 import './Login.css';
 
 // hCaptcha component (can be moved to its own file)
-const HCaptcha = ({ sitekey, onVerify }: { sitekey: string, onVerify: (token: string) => void }) => {
+const HCaptcha = ({ sitekey, onVerify, host }: { sitekey: string; onVerify: (token: string) => void; host?: string }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
   const onVerifyRef = useRef(onVerify);
@@ -27,31 +27,11 @@ const HCaptcha = ({ sitekey, onVerify }: { sitekey: string, onVerify: (token: st
 
   useEffect(() => {
     console.log('[hCaptcha] Initializing with sitekey:', sitekey);
-    
-    // Expose callback globally for hCaptcha to call
+
+    // Expose verify callback globally for hCaptcha to call
     (window as unknown as Record<string, unknown>).hcaptchaCallback = (token: string) => {
       console.log('[hCaptcha] Token received, length:', token?.length);
       onVerifyRef.current(token);
-    };
-
-    const loadScript = () => {
-      return new Promise<void>((resolve, reject) => {
-        if (document.querySelector('script[src*="hcaptcha.com"]')) {
-          console.log('[hCaptcha] Script already loaded');
-          resolve();
-          return;
-        }
-        const script = document.createElement('script');
-        script.src = 'https://js.hcaptcha.com/1/api.js?render=explicit';
-        script.async = true;
-        script.defer = true;
-        script.onload = () => {
-          console.log('[hCaptcha] Script loaded');
-          resolve();
-        };
-        script.onerror = () => reject(new Error('Failed to load hCaptcha'));
-        document.body.appendChild(script);
-      });
     };
 
     const renderWidget = () => {
@@ -62,7 +42,7 @@ const HCaptcha = ({ sitekey, onVerify }: { sitekey: string, onVerify: (token: st
           widgetIdRef.current = hcaptcha.render(containerRef.current, {
             sitekey,
             callback: 'hcaptchaCallback',
-            tabindex: -1, // Prevent auto-focus
+            tabindex: -1,
           });
           console.log('[hCaptcha] Widget rendered, ID:', widgetIdRef.current);
         } catch (e) {
@@ -71,21 +51,30 @@ const HCaptcha = ({ sitekey, onVerify }: { sitekey: string, onVerify: (token: st
       }
     };
 
-    loadScript().then(() => {
-      // Wait for hcaptcha to be ready
-      let attempts = 0;
-      const checkAndRender = () => {
-        attempts++;
-        if ((window as unknown as { hcaptcha?: unknown }).hcaptcha) {
-          renderWidget();
-        } else if (attempts < 50) {
-          setTimeout(checkAndRender, 100);
-        } else {
-          console.error('[hCaptcha] Failed to load after 50 attempts');
-        }
-      };
-      checkAndRender();
-    }).catch(console.error);
+    // Always register onload so it fires when hCaptcha finishes initializing,
+    // regardless of whether the script tag already exists in the DOM
+    (window as unknown as Record<string, unknown>).hcaptchaOnload = renderWidget;
+
+    if (document.querySelector('script[src*="hcaptcha.com"]')) {
+      // Script tag exists — if the API is already initialized, render now.
+      // If not (e.g. parallel React render added the tag but it hasn't loaded yet),
+      // hcaptchaOnload above will be called by hCaptcha once it's ready.
+      console.log('[hCaptcha] Script already loaded');
+      if ((window as unknown as { hcaptcha?: unknown }).hcaptcha) {
+        renderWidget();
+      }
+    } else {
+      const params = new URLSearchParams({ render: 'explicit', onload: 'hcaptchaOnload' });
+      if (host) params.set('host', host);
+
+      const script = document.createElement('script');
+      script.src = `https://js.hcaptcha.com/1/api.js?${params}`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => console.log('[hCaptcha] Script loaded');
+      script.onerror = () => console.error('[hCaptcha] Failed to load script');
+      document.body.appendChild(script);
+    }
 
     return () => {
       if (widgetIdRef.current) {
@@ -94,7 +83,7 @@ const HCaptcha = ({ sitekey, onVerify }: { sitekey: string, onVerify: (token: st
         widgetIdRef.current = null;
       }
     };
-  }, [sitekey]); // Remove onVerify from deps to prevent re-renders
+  }, [sitekey, host]);
 
   return <div ref={containerRef} style={{ minHeight: 78 }} tabIndex={-1} />;
 };
@@ -149,6 +138,11 @@ export const Login: React.FC = () => {
     return forceShowCaptcha || discovery?.captcha?.provider === 'hcaptcha' || serverUrl.includes('fluxer.app');
   }, [forceShowCaptcha, discovery?.captcha?.provider, serverUrl]);
 
+  // Derive hostname for hCaptcha — fixes "localhost detected" warning in native WebViews
+  const hCaptchaHost = useMemo(() => {
+    try { return new URL(serverUrl).hostname; } catch { return undefined; }
+  }, [serverUrl]);
+
   const isLoading   = authState === 'authenticating';
   const isMfa       = authState === 'mfa_required';
   const isIpAuth    = authState === 'ip_auth_required';
@@ -202,13 +196,25 @@ export const Login: React.FC = () => {
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) return;
+    
+    // Check if captcha is required but not completed
+    if (showCaptcha && !hCaptchaToken) {
+      setLoginError('Please complete the security check (captcha) before logging in');
+      return;
+    }
+    
     console.log('[Login] Attempting login, captcha token present:', !!hCaptchaToken);
     setLoginError(null);
     try {
       await login(email.trim(), password.trim(), undefined, undefined, hCaptchaToken ?? undefined);
     } catch (e) {
       console.error('[Login] Login failed:', e);
-      setLoginError((e as Error).message);
+      const msg = (e as Error).message;
+      if (msg.includes('CORS') || msg.includes('access control') || msg.includes('not allowed')) {
+        setLoginError('CORS Error: If running in simulator, open Safari DevTools console and run: window.forceNative = true; then retry');
+      } else {
+        setLoginError(msg);
+      }
     }
   };
 
@@ -410,17 +416,23 @@ export const Login: React.FC = () => {
 
               {/* HCaptcha - always show for public instances or when server requires it */}
               {showCaptcha && (
-                <div style={{ marginTop: 16 }}>
-                  <label className="flx-label">Security Check</label>
+                <div style={{ marginTop: 16, padding: 12, background: 'var(--flx-bg-surface)', borderRadius: 8, border: hCaptchaToken ? '1px solid var(--ion-color-success)' : '1px solid var(--flx-separator)' }}>
+                  <label className="flx-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    Security Check
+                    {hCaptchaToken && <span style={{ color: 'var(--ion-color-success)' }}>✓</span>}
+                  </label>
                   <div style={{ display: 'flex', justifyContent: 'center', pointerEvents: 'auto' }}>
                     <HCaptcha
                       key="hcaptcha-widget" // Stable key to prevent re-mounting
                       sitekey={discovery?.captcha?.hcaptcha_site_key ?? 'e6e09352-d1e4-4924-80b6-e136c3b1a061'}
                       onVerify={handleCaptchaVerify}
+                      host={hCaptchaHost}
                     />
                   </div>
                   {!hCaptchaToken && (
-                    <span className="flx-hint">Please complete the captcha above to continue</span>
+                    <span className="flx-hint" style={{ color: 'var(--ion-color-warning)' }}>
+                      ⚠️ Please complete the captcha above before logging in
+                    </span>
                   )}
                 </div>
               )}

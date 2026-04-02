@@ -10,6 +10,21 @@ export default defineConfig({
     react(),
     legacy()
   ],
+  server: {
+    proxy: {
+      // More specific path must come first
+      '/proxy/v1': {
+        target: 'https://api.fluxer.app',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/proxy/, ''),
+      },
+      '/proxy': {
+        target: 'https://web.fluxer.app',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/proxy/, ''),
+      },
+    },
+  },
   test: {
     globals: true,
     environment: 'jsdom',
