@@ -7,20 +7,11 @@ const config: CapacitorConfig = {
   server: {
     iosScheme: 'https',
     androidScheme: 'https',
-    // Use a proxy for local development to bypass CORS
-    proxy: {
-      '/proxy': {
-        target: 'https://api.fluxer.app',
-        changeOrigin: true,
-        pathRewrite: {
-          '^/proxy': '',
-        },
-        // Add required headers for the Fluxer API
-        onProxyReq: (proxyReq) => {
-          proxyReq.setHeader('Origin', 'https://api.fluxer.app');
-        },
-      },
-    },
+    // Sets window.location.hostname to 'web.fluxer.app' inside the WebView.
+    // Required so hCaptcha's sitekey validates against the correct registered domain
+    // instead of 'localhost'. CapacitorHttp bypasses CORS so this doesn't affect
+    // API calls on native.
+    hostname: 'web.fluxer.app',
   },
   plugins: {
     CapacitorHttp: {
